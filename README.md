@@ -7,6 +7,7 @@ This remote MCP server lets AI agents get moving quotes:
 - `get_quote_free` – free moving quote (use this first)
 - `get_quote` – the same quote, paid at $0.01 USDC via x402
 - `request_booking` – free booking request
+- `company_info` – licensing and contact details
 
 ## Connect
 
