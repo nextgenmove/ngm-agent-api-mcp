@@ -33,6 +33,13 @@ This repo holds only the listing files. The server runs as a hosted service.
 
 ## Connect your agent
 
+**Remote MCP:** `https://ngm-agent-api.nextgenmovers.workers.dev/mcp`  
+**Agent card:** `https://ngm-agent-api.nextgenmovers.workers.dev/.well-known/agent.json`  
+**Docs:** [For AI agents](https://nextgeneration-movers.com/for-ai-agents/) · [API llms.txt](https://ngm-agent-api.nextgenmovers.workers.dev/llms.txt)
+
+Install: `npx add-mcp 'https://ngm-agent-api.nextgenmovers.workers.dev/mcp'`
+
+
 - MCP endpoint (Streamable HTTP): `https://ngm-agent-api.nextgenmovers.workers.dev/mcp`
 - Agent card: https://ngm-agent-api.nextgenmovers.workers.dev/.well-known/agent.json
 - OpenAPI: https://ngm-agent-api.nextgenmovers.workers.dev/openapi.json
