@@ -1,6 +1,6 @@
 # Next Generation Movers MCP server
 
-[![MCP](https://img.shields.io/badge/MCP-remote-blue)](https://ngm-agent-api.nextgenmovers.workers.dev/mcp) [![Glama](https://img.shields.io/badge/Glama-listed-green)](https://glama.ai/mcp/connectors/dev.workers.nextgenmovers.ngm-agent-api/movers) [![x402](https://img.shields.io/badge/x402-%240.01%20USDC-purple)](https://ngm-agent-api.nextgenmovers.workers.dev/)
+[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/nextgenmove/ngm-agent-api) [![MCP](https://img.shields.io/badge/MCP-remote-blue)](https://ngm-agent-api.nextgenmovers.workers.dev/mcp) [![Glama](https://img.shields.io/badge/Glama-listed-green)](https://glama.ai/mcp/connectors/dev.workers.nextgenmovers.ngm-agent-api/movers) [![x402](https://img.shields.io/badge/x402-%240.01%20USDC-purple)](https://ngm-agent-api.nextgenmovers.workers.dev/)
 
 Next Generation Movers is a licensed interstate household goods carrier (USDOT 3764697, MC 1341637), based at 645 Lofstrand Ln Unit B, Rockville, MD 20850.
 
