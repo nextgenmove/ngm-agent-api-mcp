@@ -1,0 +1,397 @@
+{
+  "identifier": "nextgenmove-ngm-agent-api-mcp",
+  "name": "Next Generation Movers",
+  "version": "0.5.0",
+  "description": "Moving quotes for AI agents from Next Generation Movers, a licensed interstate household goods carrier (USDOT 3764697, MC 1341637) in Rockville, MD. Free quotes, a $0.01 USDC x402 paid quote, and free booking requests.",
+  "author": "Next Generation Movers",
+  "authorUrl": "https://nextgeneration-movers.com/",
+  "homepage": "https://nextgeneration-movers.com/for-ai-agents/",
+  "cloudEndpoint": "https://ngm-agent-api.nextgenmovers.workers.dev/mcp",
+  "category": "lifestyle",
+  "icon": "🚚",
+  "tags": [
+    "moving",
+    "movers",
+    "quotes",
+    "logistics",
+    "x402"
+  ],
+  "tools": [
+    {
+      "name": "get_quote",
+      "description": "Nationwide interstate and long-distance household moves between any two US states, plus local moves in the DC/Maryland/Virginia area. Licensed carrier USDOT 3764697, MC 1341637. Indicative price per tariff (not a legal estimate) between any two US ZIP codes. Long distance nationwide, per cubic foot by distance and size; local hourly in DC, MD, VA only. Costs $0.01 (x402, USDC on Base). Invalid input is rejected before payment.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from_zip": {
+            "type": "string",
+            "pattern": "^\\d{5}$",
+            "description": "Origin 5-digit US ZIP"
+          },
+          "to_zip": {
+            "type": "string",
+            "pattern": "^\\d{5}$",
+            "description": "Destination 5-digit US ZIP, any US state. Over about 50 road miles is priced as long distance per cubic foot; shorter moves are priced hourly only within DC/MD/VA"
+          },
+          "move_date": {
+            "type": "string",
+            "description": "Earliest pickup date, YYYY-MM-DD"
+          },
+          "home_size": {
+            "type": "string",
+            "enum": [
+              "studio",
+              "1br",
+              "2br",
+              "3br",
+              "4br",
+              "5br+"
+            ],
+            "description": "Home size; used to estimate cubic feet (long distance) or crew and hours (local)"
+          },
+          "bedrooms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Alternative to home_size"
+          },
+          "cubic_feet": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total shipment cubic feet, if known (350 cf minimum applies)"
+          },
+          "inventory": {
+            "type": "array",
+            "maxItems": 500,
+            "description": "Optional item list; cubic_feet (or weight_lbs, converted at 6.5 lb/cf) per item",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "weight_lbs": {
+                  "type": "number"
+                },
+                "cubic_feet": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "specialty_items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "piano_upright",
+                "piano_grand",
+                "piano_baby_grand",
+                "motorcycle",
+                "atv",
+                "pool_table",
+                "jacuzzi",
+                "appliance",
+                "aquarium",
+                "misc_bulky"
+              ]
+            },
+            "description": "Bulky items with a tariff handling charge"
+          },
+          "packing": {
+            "type": "string",
+            "enum": [
+              "none",
+              "full"
+            ],
+            "description": "Full packing at $1.25 per cf (long distance)"
+          },
+          "unpacking": {
+            "type": "boolean",
+            "description": "Full unpacking at $1.25 per cf (long distance)"
+          },
+          "storage_months": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 24,
+            "description": "Months of storage, $50 per 100 cf per month"
+          },
+          "stairs_flights": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Flights of stairs, $75 per flight"
+          },
+          "long_carry_feet": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Long carry distance in feet, $100 per 75 ft"
+          },
+          "shuttle": {
+            "type": "boolean",
+            "description": "Shuttle truck needed, $1.25 per cf, $700 minimum"
+          },
+          "extra_stops": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Extra pickup or delivery stops, $150 each"
+          },
+          "safes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of safes, $500 each"
+          },
+          "guaranteed_delivery": {
+            "type": "boolean",
+            "description": "Guaranteed delivery date, 42% of line haul (long distance)"
+          },
+          "crew_size": {
+            "type": "integer",
+            "enum": [
+              2,
+              3,
+              4
+            ],
+            "description": "Local only: 2 movers $229/hr, 3 movers $259/hr, 4 movers $299/hr"
+          },
+          "est_hours": {
+            "type": "number",
+            "description": "Local only: estimated labor hours (3-hour minimum)"
+          }
+        },
+        "required": [
+          "from_zip",
+          "to_zip",
+          "move_date"
+        ]
+      }
+    },
+    {
+      "name": "get_quote_free",
+      "description": "FREE. Nationwide interstate and long-distance household moves between any two US states, plus local moves in the DC/Maryland/Virginia area. Licensed carrier USDOT 3764697, MC 1341637. Same indicative price per tariff as get_quote, no payment. Any two US ZIP codes. Optional contact_name, contact_phone, contact_email let Next Generation Movers call the customer to book. Returns booking link and phone (240) 422-2243.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from_zip": {
+            "type": "string",
+            "pattern": "^\\d{5}$",
+            "description": "Origin 5-digit US ZIP"
+          },
+          "to_zip": {
+            "type": "string",
+            "pattern": "^\\d{5}$",
+            "description": "Destination 5-digit US ZIP, any US state. Over about 50 road miles is priced as long distance per cubic foot; shorter moves are priced hourly only within DC/MD/VA"
+          },
+          "move_date": {
+            "type": "string",
+            "description": "Earliest pickup date, YYYY-MM-DD"
+          },
+          "home_size": {
+            "type": "string",
+            "enum": [
+              "studio",
+              "1br",
+              "2br",
+              "3br",
+              "4br",
+              "5br+"
+            ],
+            "description": "Home size; used to estimate cubic feet (long distance) or crew and hours (local)"
+          },
+          "bedrooms": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10,
+            "description": "Alternative to home_size"
+          },
+          "cubic_feet": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Total shipment cubic feet, if known (350 cf minimum applies)"
+          },
+          "inventory": {
+            "type": "array",
+            "maxItems": 500,
+            "description": "Optional item list; cubic_feet (or weight_lbs, converted at 6.5 lb/cf) per item",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "weight_lbs": {
+                  "type": "number"
+                },
+                "cubic_feet": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          },
+          "specialty_items": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "piano_upright",
+                "piano_grand",
+                "piano_baby_grand",
+                "motorcycle",
+                "atv",
+                "pool_table",
+                "jacuzzi",
+                "appliance",
+                "aquarium",
+                "misc_bulky"
+              ]
+            },
+            "description": "Bulky items with a tariff handling charge"
+          },
+          "packing": {
+            "type": "string",
+            "enum": [
+              "none",
+              "full"
+            ],
+            "description": "Full packing at $1.25 per cf (long distance)"
+          },
+          "unpacking": {
+            "type": "boolean",
+            "description": "Full unpacking at $1.25 per cf (long distance)"
+          },
+          "storage_months": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 24,
+            "description": "Months of storage, $50 per 100 cf per month"
+          },
+          "stairs_flights": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Flights of stairs, $75 per flight"
+          },
+          "long_carry_feet": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Long carry distance in feet, $100 per 75 ft"
+          },
+          "shuttle": {
+            "type": "boolean",
+            "description": "Shuttle truck needed, $1.25 per cf, $700 minimum"
+          },
+          "extra_stops": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Extra pickup or delivery stops, $150 each"
+          },
+          "safes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of safes, $500 each"
+          },
+          "guaranteed_delivery": {
+            "type": "boolean",
+            "description": "Guaranteed delivery date, 42% of line haul (long distance)"
+          },
+          "crew_size": {
+            "type": "integer",
+            "enum": [
+              2,
+              3,
+              4
+            ],
+            "description": "Local only: 2 movers $229/hr, 3 movers $259/hr, 4 movers $299/hr"
+          },
+          "est_hours": {
+            "type": "number",
+            "description": "Local only: estimated labor hours (3-hour minimum)"
+          },
+          "contact_name": {
+            "type": "string"
+          },
+          "contact_phone": {
+            "type": "string"
+          },
+          "contact_email": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "from_zip",
+          "to_zip",
+          "move_date"
+        ]
+      }
+    },
+    {
+      "name": "request_booking",
+      "description": "Free date-hold request with Next Generation Movers. No payment; the owners set the deposit and send the signed estimate after a free survey.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "idempotency_key": {
+            "type": "string",
+            "description": "Unique key per booking request (UUID recommended). Reusing it returns the same request"
+          },
+          "quote_id": {
+            "type": "string"
+          },
+          "move_date": {
+            "type": "string",
+            "description": "YYYY-MM-DD"
+          },
+          "flexible_dates": {
+            "type": "boolean"
+          },
+          "from_zip": {
+            "type": "string"
+          },
+          "to_zip": {
+            "type": "string"
+          },
+          "contact_name": {
+            "type": "string"
+          },
+          "contact_email": {
+            "type": "string"
+          },
+          "contact_phone": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "move_date"
+        ]
+      }
+    },
+    {
+      "name": "company_info",
+      "description": "Facts about Next Generation Movers: licensing, service area, contact.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  ]
+}
