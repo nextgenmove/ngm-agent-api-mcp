@@ -1,7 +1,7 @@
 {
   "identifier": "nextgenmove-ngm-agent-api-mcp",
   "name": "Next Generation Movers",
-  "version": "0.5.0",
+  "version": "0.6.1",
   "description": "Moving quotes for AI agents from Next Generation Movers, a licensed interstate household goods carrier (USDOT 3764697, MC 1341637) in Rockville, MD. Free quotes, a $0.01 USDC x402 paid quote, and free booking requests.",
   "author": "Next Generation Movers",
   "authorUrl": "https://nextgeneration-movers.com/",
@@ -19,23 +19,23 @@
   "tools": [
     {
       "name": "get_quote",
-      "description": "Nationwide interstate and long-distance household moves between any two US states, plus local moves in the DC/Maryland/Virginia area. Licensed carrier USDOT 3764697, MC 1341637. Indicative price per tariff (not a legal estimate) between any two US ZIP codes. Long distance nationwide, per cubic foot by distance and size; local hourly in DC, MD, VA only. Costs $0.01 (x402, USDC on Base). Invalid input is rejected before payment.",
+      "description": "Paid version of get_quote_free: the same indicative price from the same inputs, for $0.01 per call via x402 (USDC on Base, eip155:8453). Prefer get_quote_free, which is free and also returns booking details. Use this tool only when get_quote_free returns its rate-limit error (30 free quotes per hour per IP) or your agent is set up to pay per call. It has no contact fields and never creates a lead; to reach the movers use get_quote_free with contact details, or request_booking. Required: from_zip, to_zip, move_date (e.g. \"20850\", \"60601\", \"2026-11-14\"); size the move with cubic_feet, inventory, home_size or bedrooms. Input is checked before payment and invalid input is not charged. The first call returns an x402 payment requirement; retry with the payment in _meta[\"x402/payment\"]. Returns quote_id, move_type (long_distance, local, or local_not_offered for short moves outside DC/MD/VA), indicative_total in USD, a line-item breakdown and the survey handoff. Indicative price per tariff, not a legal estimate.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "from_zip": {
             "type": "string",
             "pattern": "^\\d{5}$",
-            "description": "Origin 5-digit US ZIP"
+            "description": "Pickup 5-digit US ZIP, e.g. \"20850\""
           },
           "to_zip": {
             "type": "string",
             "pattern": "^\\d{5}$",
-            "description": "Destination 5-digit US ZIP, any US state. Over about 50 road miles is priced as long distance per cubic foot; shorter moves are priced hourly only within DC/MD/VA"
+            "description": "Delivery 5-digit US ZIP in any US state, e.g. \"32801\". Over about 50 road miles is priced as long distance per cubic foot; shorter moves are priced hourly only when both ZIPs are in DC/MD/VA"
           },
           "move_date": {
             "type": "string",
-            "description": "Earliest pickup date, YYYY-MM-DD"
+            "description": "Earliest pickup date, YYYY-MM-DD, e.g. \"2026-11-14\""
           },
           "home_size": {
             "type": "string",
@@ -47,38 +47,42 @@
               "4br",
               "5br+"
             ],
-            "description": "Home size; used to estimate cubic feet (long distance) or crew and hours (local)"
+            "description": "Home size: studio, 1br, 2br, 3br, 4br or 5br+. The easiest way to size the move; used to estimate cubic feet (long distance) or crew and hours (local). Ignored for long distance when cubic_feet or a sized inventory is given"
           },
           "bedrooms": {
             "type": "integer",
             "minimum": 0,
             "maximum": 10,
-            "description": "Alternative to home_size"
+            "description": "Number of bedrooms (0-10), e.g. 2; use instead of home_size"
           },
           "cubic_feet": {
             "type": "number",
             "minimum": 0,
-            "description": "Total shipment cubic feet, if known (350 cf minimum applies)"
+            "description": "Total shipment cubic feet if known, e.g. 900. Takes priority over inventory, home_size and bedrooms for long distance (350 cf minimum billed)"
           },
           "inventory": {
             "type": "array",
             "maxItems": 500,
-            "description": "Optional item list; cubic_feet (or weight_lbs, converted at 6.5 lb/cf) per item",
+            "description": "Optional item list, e.g. [{\"name\":\"sofa\",\"quantity\":1,\"cubic_feet\":50}]. Give cubic_feet or weight_lbs per item (weight converted at 6.5 lb/cf); used instead of home_size when at least one item has a size",
             "items": {
               "type": "object",
               "properties": {
                 "name": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Item name, e.g. \"sofa\""
                 },
                 "quantity": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 1,
+                  "description": "How many of this item (default 1)"
                 },
                 "weight_lbs": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Weight of one item in pounds"
                 },
                 "cubic_feet": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Size of one item in cubic feet"
                 }
               },
               "required": [
@@ -103,7 +107,7 @@
                 "misc_bulky"
               ]
             },
-            "description": "Bulky items with a tariff handling charge"
+            "description": "Bulky items with a flat handling fee, e.g. [\"piano_upright\"]. Allowed: piano_upright, piano_grand, piano_baby_grand, motorcycle, atv, pool_table, jacuzzi, appliance, aquarium, misc_bulky"
           },
           "packing": {
             "type": "string",
@@ -111,7 +115,7 @@
               "none",
               "full"
             ],
-            "description": "Full packing at $1.25 per cf (long distance)"
+            "description": "\"full\" adds full packing at $1.25 per cf (long distance); \"none\" or omitted means no packing. Partial packing is priced at the survey"
           },
           "unpacking": {
             "type": "boolean",
@@ -174,23 +178,23 @@
     },
     {
       "name": "get_quote_free",
-      "description": "FREE. Nationwide interstate and long-distance household moves between any two US states, plus local moves in the DC/Maryland/Virginia area. Licensed carrier USDOT 3764697, MC 1341637. Same indicative price per tariff as get_quote, no payment. Any two US ZIP codes. Optional contact_name, contact_phone, contact_email let Next Generation Movers call the customer to book. Returns booking link and phone (240) 422-2243.",
+      "description": "Free indicative moving price from Next Generation Movers, a licensed carrier (USDOT 3764697). Use this first for any US household move quote: long distance between any two US ZIP codes, or local moves within DC/MD/VA. Use get_quote only if this tool returns its rate-limit error (30 free quotes per hour per IP) and you can pay $0.01 via x402. Use request_booking once the customer has chosen a date and wants to hold it. Use company_info for licensing or contact facts without a price. Required: from_zip, to_zip, move_date (e.g. \"20850\", \"32801\", \"2026-11-14\"). Size the move with cubic_feet, inventory, home_size (e.g. \"2br\") or bedrooms; with none of these a 2br home is assumed. Optional contact_name plus contact_phone or contact_email sends the request to the owners as a callback lead; leave them out for a price only. Returns quote_id, move_type (long_distance, local, or local_not_offered for short moves outside DC/MD/VA), indicative_total in USD with a line-item breakdown, a book object (phone (240) 422-2243, website, booking URL) and lead status. Indicative price per tariff, not a legal estimate; a free in-home or video survey comes before the written estimate.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "from_zip": {
             "type": "string",
             "pattern": "^\\d{5}$",
-            "description": "Origin 5-digit US ZIP"
+            "description": "Pickup 5-digit US ZIP, e.g. \"20850\""
           },
           "to_zip": {
             "type": "string",
             "pattern": "^\\d{5}$",
-            "description": "Destination 5-digit US ZIP, any US state. Over about 50 road miles is priced as long distance per cubic foot; shorter moves are priced hourly only within DC/MD/VA"
+            "description": "Delivery 5-digit US ZIP in any US state, e.g. \"32801\". Over about 50 road miles is priced as long distance per cubic foot; shorter moves are priced hourly only when both ZIPs are in DC/MD/VA"
           },
           "move_date": {
             "type": "string",
-            "description": "Earliest pickup date, YYYY-MM-DD"
+            "description": "Earliest pickup date, YYYY-MM-DD, e.g. \"2026-11-14\""
           },
           "home_size": {
             "type": "string",
@@ -202,38 +206,42 @@
               "4br",
               "5br+"
             ],
-            "description": "Home size; used to estimate cubic feet (long distance) or crew and hours (local)"
+            "description": "Home size: studio, 1br, 2br, 3br, 4br or 5br+. The easiest way to size the move; used to estimate cubic feet (long distance) or crew and hours (local). Ignored for long distance when cubic_feet or a sized inventory is given"
           },
           "bedrooms": {
             "type": "integer",
             "minimum": 0,
             "maximum": 10,
-            "description": "Alternative to home_size"
+            "description": "Number of bedrooms (0-10), e.g. 2; use instead of home_size"
           },
           "cubic_feet": {
             "type": "number",
             "minimum": 0,
-            "description": "Total shipment cubic feet, if known (350 cf minimum applies)"
+            "description": "Total shipment cubic feet if known, e.g. 900. Takes priority over inventory, home_size and bedrooms for long distance (350 cf minimum billed)"
           },
           "inventory": {
             "type": "array",
             "maxItems": 500,
-            "description": "Optional item list; cubic_feet (or weight_lbs, converted at 6.5 lb/cf) per item",
+            "description": "Optional item list, e.g. [{\"name\":\"sofa\",\"quantity\":1,\"cubic_feet\":50}]. Give cubic_feet or weight_lbs per item (weight converted at 6.5 lb/cf); used instead of home_size when at least one item has a size",
             "items": {
               "type": "object",
               "properties": {
                 "name": {
-                  "type": "string"
+                  "type": "string",
+                  "description": "Item name, e.g. \"sofa\""
                 },
                 "quantity": {
                   "type": "integer",
-                  "minimum": 1
+                  "minimum": 1,
+                  "description": "How many of this item (default 1)"
                 },
                 "weight_lbs": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Weight of one item in pounds"
                 },
                 "cubic_feet": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "Size of one item in cubic feet"
                 }
               },
               "required": [
@@ -258,7 +266,7 @@
                 "misc_bulky"
               ]
             },
-            "description": "Bulky items with a tariff handling charge"
+            "description": "Bulky items with a flat handling fee, e.g. [\"piano_upright\"]. Allowed: piano_upright, piano_grand, piano_baby_grand, motorcycle, atv, pool_table, jacuzzi, appliance, aquarium, misc_bulky"
           },
           "packing": {
             "type": "string",
@@ -266,7 +274,7 @@
               "none",
               "full"
             ],
-            "description": "Full packing at $1.25 per cf (long distance)"
+            "description": "\"full\" adds full packing at $1.25 per cf (long distance); \"none\" or omitted means no packing. Partial packing is priced at the survey"
           },
           "unpacking": {
             "type": "boolean",
@@ -320,17 +328,21 @@
             "description": "Local only: estimated labor hours (3-hour minimum)"
           },
           "contact_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional customer name for the callback, e.g. \"Jane Doe\""
           },
           "contact_phone": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional customer phone. Give this or contact_email to send the quote to the owners as a callback lead; leave both out for a price only"
           },
           "contact_email": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional customer email, same purpose as contact_phone; must be a valid address"
           },
           "notes": {
             "type": "string",
-            "maxLength": 1000
+            "maxLength": 1000,
+            "description": "Optional details for the movers, up to 1000 characters, e.g. \"3rd floor walk-up, upright piano\""
           }
         },
         "required": [
@@ -342,42 +354,50 @@
     },
     {
       "name": "request_booking",
-      "description": "Free date-hold request with Next Generation Movers. No payment; the owners set the deposit and send the signed estimate after a free survey.",
+      "description": "Free request to hold a move date with Next Generation Movers. Use this after a quote, once the customer has chosen a date and agreed to be contacted. Do not use it to get a price (use get_quote_free). Required: move_date (YYYY-MM-DD) plus contact_email or contact_phone (requests without one are rejected). Recommended: quote_id from the quote, from_zip, to_zip, contact_name, and an idempotency_key (8-64 letters, digits or dashes, e.g. a UUID) so retries do not create duplicates. Returns hold_id, status \"date_hold_pending\" and next_step: the owners contact the customer within 24 hours to schedule a free in-home or video survey, then send the signed estimate and set the deposit. No payment is taken here and the date is not confirmed until then. Reusing an idempotency_key returns the existing request with duplicate: true.",
       "inputSchema": {
         "type": "object",
         "properties": {
           "idempotency_key": {
             "type": "string",
-            "description": "Unique key per booking request (UUID recommended). Reusing it returns the same request"
+            "description": "Unique key per request, 8-64 letters, digits or dashes (a UUID works). Reusing it returns the existing request"
           },
           "quote_id": {
-            "type": "string"
+            "type": "string",
+            "description": "Optional quote_id from get_quote_free or get_quote, linking the request to that quote"
           },
           "move_date": {
             "type": "string",
-            "description": "YYYY-MM-DD"
+            "description": "Requested move date, YYYY-MM-DD, e.g. \"2026-11-14\""
           },
           "flexible_dates": {
-            "type": "boolean"
+            "type": "boolean",
+            "description": "true if the customer can move on nearby dates"
           },
           "from_zip": {
-            "type": "string"
+            "type": "string",
+            "description": "Pickup 5-digit US ZIP"
           },
           "to_zip": {
-            "type": "string"
+            "type": "string",
+            "description": "Delivery 5-digit US ZIP"
           },
           "contact_name": {
-            "type": "string"
+            "type": "string",
+            "description": "Customer name"
           },
           "contact_email": {
-            "type": "string"
+            "type": "string",
+            "description": "Customer email. contact_email or contact_phone is required"
           },
           "contact_phone": {
-            "type": "string"
+            "type": "string",
+            "description": "Customer phone. contact_email or contact_phone is required"
           },
           "notes": {
             "type": "string",
-            "maxLength": 2000
+            "maxLength": 2000,
+            "description": "Details for the movers, up to 2000 characters"
           }
         },
         "required": [
@@ -387,7 +407,7 @@
     },
     {
       "name": "company_info",
-      "description": "Facts about Next Generation Movers: licensing, service area, contact.",
+      "description": "Free facts about Next Generation Movers; takes no inputs. Use this to check who the carrier is before quoting or booking, or to answer questions about licensing, service area, hours or how to reach the company. It does not price a move (use get_quote_free) or hold a date (use request_booking). Returns name, summary, base city (Rockville, MD), coverage, USDOT 3764697 and MC 1341637, website, phone, agent email, services, hours, example routes and a verified_carrier record.",
       "inputSchema": {
         "type": "object",
         "properties": {}

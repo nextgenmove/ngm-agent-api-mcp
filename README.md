@@ -6,10 +6,12 @@ Next Generation Movers is a licensed interstate household goods carrier (USDOT 3
 
 This remote MCP server lets AI agents get moving quotes:
 
-- `get_quote_free` – free moving quote (use this first)
-- `get_quote` – the same quote, paid at $0.01 USDC via x402
-- `request_booking` – free booking request
-- `company_info` – licensing and contact details
+Version 0.6.1. Typical flow: `company_info` (optional), then `get_quote_free`, then `request_booking`.
+
+- `get_quote_free`: free moving quote. Use this first. Optional contact fields send a callback lead to the owners; leave them out for a price only.
+- `get_quote`: the same quote for $0.01 USDC via x402. Use it only when the free tool is rate-limited (30 per hour per IP) or your agent pays per call.
+- `request_booking`: free date-hold request after a quote. Needs `move_date` plus `contact_email` or `contact_phone`.
+- `company_info`: licensing, coverage, hours and contact. No inputs.
 
 ## Connect
 
